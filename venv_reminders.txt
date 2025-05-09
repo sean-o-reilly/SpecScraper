@@ -1,0 +1,6 @@
+have to leave this text file here cause I cannot for the life of me remember how
+to use the python venv on WSL
+
+python3 -m venv venv         # will create a venv
+source venv/bin/activate     # will activate
+deactive		     # deactivate venv 
