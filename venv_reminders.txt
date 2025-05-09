@@ -4,3 +4,7 @@ to use the python venv on WSL
 python3 -m venv venv         # will create a venv
 source venv/bin/activate     # will activate
 deactive		     # deactivate venv 
+
+
+streamlit hello         # launch a sample web app
+CTRL+C              # stop the streamlit server from running on the port
