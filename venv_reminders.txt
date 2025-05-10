@@ -1,5 +1,4 @@
-have to leave this text file here cause I cannot for the life of me remember how
-to use the python venv on WSL
+keep forgetting my python
 
 python3 -m venv venv         # will create a venv
 source venv/bin/activate     # will activate
@@ -7,4 +6,9 @@ deactive		     # deactivate venv
 
 
 streamlit hello         # launch a sample web app
+streamlit run <py file> # launch a streamlit app
 CTRL+C              # stop the streamlit server from running on the port
+
+
+
+df      # will automatically print out a whole pandas dataframe
