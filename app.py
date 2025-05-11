@@ -37,7 +37,8 @@ gpu_specs = [
         "base_clock": 2.33, 
         "vram (gb)": 12,
         "cuda_cores": 6144,
-        "power (watts)": 650
+        "power (watts)": 650,
+        "msrp_usd": 550
     },
     {
         "name": "NVIDIA Geforce RTX 5070 Ti",
@@ -45,7 +46,8 @@ gpu_specs = [
         "base_clock": 2.3, 
         "vram (gb)": 16,
         "cuda_cores": 8960,
-        "power (watts)": 750
+        "power (watts)": 750,
+        "msrp_usd": 750
     },
     {
         "name": "NVIDIA GeForce RTX 1060",
@@ -53,7 +55,8 @@ gpu_specs = [
         "base_clock": 1.50, 
         "vram (gb)": 6,
         "cuda_cores": -1,
-        "power (watts)": 300
+        "power (watts)": 300,
+        "msrp_usd": 250
     },
     {
         "name": "AMD Radeon RX 9070 XT",
@@ -61,7 +64,8 @@ gpu_specs = [
         "base_clock": 2.40, 
         "vram (gb)": 16,
         "cuda_cores": -1,
-        "power (watts)": 750
+        "power (watts)": 750,
+        "msrp_usd": 600
     }
 ]
 
@@ -76,8 +80,8 @@ def stream_text(text):
         time.sleep(0.05)
 
 # takes in a dict with each gpu's specs, and unit of measurement, spec name for writing
-def compare_spec(s1, s2, query_index, unit, spec_name, large_val=False):
-    st.write(spec_name)
+def compare_spec(s1, s2, query_index, unit, spec_name, large_val=False, small_val=False, flip_weights=False, delta_color="normal", prefix=""):
+    st.badge(spec_name)
     left, right = st.columns(2)
 
     # boost clock frequency
@@ -93,55 +97,69 @@ def compare_spec(s1, s2, query_index, unit, spec_name, large_val=False):
             left.metric("", label_visibility="collapsed", value="N/A")
         else:
             if large_val:
-                left.metric("", label_visibility="collapsed", value=str(millify(val_1, precision=2)) + " " + unit, )
+                left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit, )
             else:
-                left.metric("", label_visibility="collapsed", value=str(val_1) + " " + unit, )
+                left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit, )
 
         if val_2 == -1: 
             right.metric("", label_visibility="collapsed", value="N/A")
         else:
             if large_val:
-                right.metric("", label_visibility="collapsed", value=str(millify(val_2, precision=2)) + " " + unit, )
+                right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit, )
             else:
-                right.metric("", label_visibility="collapsed", value=str(val_2) + " " + unit, )
-
+                right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit, )
+        
         return
     
 
     # assuming two valid specs to compare
 
-    delta = ( ( max(val_1, val_2) / min(val_1, val_2) ) - 1 ) * 100.0
-    delta = round(delta, 2)
+    # wouldn't make sense to say 12GB of RAM is "50%" more ram.. but maybe i should revert this later
+    if small_val == True:
+        delta = (abs(val_1 - val_2))
+        delta = prefix + str(int(delta)) + " " + unit
+        val_1 = int(val_1)
+        val_2 = int(val_2)
+
+    else:
+        delta = ( ( max(val_1, val_2) / min(val_1, val_2) ) - 1 ) * 100.0
+        delta = round(delta, 2)
+        delta = prefix + str(delta) + "%"
 
     if large_val == True: #display numbers as 1.23k instead of 1,230
         if val_1 > val_2:
-            left.metric("", label_visibility="collapsed", value=str( millify(val_1, precision=2) ) + " " + unit,  delta=str(delta) + "%")
-            right.metric("", label_visibility="collapsed", value=str( millify(val_2, precision=2) ) + " " + unit,  delta="")
+            left.metric("", label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " " + unit,  delta=delta, delta_color=delta_color)
+            right.metric("", label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " " + unit)
         elif val_1 < val_2:
-            left.metric("", label_visibility="collapsed", value=str(millify(val_1, precision=2)) + " " + unit,  delta="")
-            right.metric("", label_visibility="collapsed", value=str(millify(val_2, precision=2)) + " " + unit, delta=str(delta) + "%")
+            left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit)
+            right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit, delta=delta, delta_color=delta_color)
         else:
-            left.metric("", label_visibility="collapsed", value=str(millify(val_1, precision=2)) + " " + unit, )
-            right.metric("", label_visibility="collapsed", value=str(millify(val_2, precision=2)) + " " + unit,)
+            left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit, )
+            right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit,)
     else:
         if val_1 > val_2:
-            left.metric("", label_visibility="collapsed", value=str(val_1) + " " + unit,  delta=str(delta) + "%")
-            right.metric("", label_visibility="collapsed", value=str(val_2) + " " + unit,  delta="")
+            left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit,  delta=delta, delta_color=delta_color)
+            right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
         elif val_1 < val_2:
-            left.metric("", label_visibility="collapsed", value=str(val_1) + " " + unit,  delta="")
-            right.metric("", label_visibility="collapsed", value=str(val_2) + " " + unit, delta=str(delta) + "%")
+            left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit)
+            right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit, delta=delta, delta_color=delta_color)
         else:
-            left.metric("", label_visibility="collapsed", value=str(val_1) + " " + unit, )
-            right.metric("", label_visibility="collapsed", value=str(val_2) + " " + unit,)
+            left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit)
+            right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
 
 # === Application ===
+
+# my_bar = st.progress(0)
+# for percent_complete in range(100):
+#     time.sleep(0.005)
+#     my_bar.progress(percent_complete + 1)
+# time.sleep(0.5)
+# my_bar.empty()
 
 
 st.title("Hello, welcome to :blue[SpecScraper]! :wave:", anchor=None)
 
 st.write("Enter two GPUs to compare below..")
-
-
 
 
 left, right = st.columns(2)
@@ -173,8 +191,15 @@ if gpu_1.strip() and gpu_2.strip():     #.strip() will ignore whitespace, this c
 
     # === Comparing dashboard happens here ===
 
-    compare_spec(spec_1, spec_2, "boost_clock (ghz)", "GHz", "Boost Clock Frequency")
-    compare_spec(spec_1, spec_2, "cuda_cores", "", "CUDA Cores", large_val=True)
+    with st.container(height=700):
+        with st.spinner(): # adds spinning loading screen
+            compare_spec(spec_1, spec_2, "boost_clock (ghz)", "GHz", "Boost Clock Frequency")
+            compare_spec(spec_1, spec_2, "base_clock", "GHz", "Base Clock Frequency")
+            compare_spec(spec_1, spec_2, "vram (gb)", "GB", "VRAM",small_val=True)
+            compare_spec(spec_1, spec_2, "power (watts)", "Watts", "Power Usage", small_val=True, delta_color="inverse")
+            compare_spec(spec_1, spec_2, "msrp_usd", "USD", "MSRP Price", small_val=True, delta_color="inverse", prefix="$")
+            compare_spec(spec_1, spec_2, "cuda_cores", "", "CUDA Cores", large_val=True)
+            
 
     
 
