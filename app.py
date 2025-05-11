@@ -30,6 +30,8 @@ from millify import millify
 # average fps across games
 
 df = pd.read_json("data/gpu_specs.json").set_index("name")
+
+df["boost_clock_ghz"] = df["boost_clock_ghz"].round(2) # fix floating point errors
 names = df.index.tolist()
 
 # save this for later, could be cool for a chatbot
@@ -47,6 +49,7 @@ def compare_spec(s1, s2, query_index, unit, spec_name, large_val=False, small_va
 
     val_1 = s1[query_index] # ex. "cuda_cores" index of the dict
     val_2 = s2[query_index]
+
 
     # protection from divide by zero and other delta errors
     if (val_1 == -1 or val_1 == 0) or (val_2 == -1 or val_2 == 0):
