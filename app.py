@@ -1,6 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
+import time
 
 
 #should put these in a utils include
@@ -68,12 +69,18 @@ gpu_specs = [
 df = pd.DataFrame(data=gpu_specs).set_index("name")
 names = df.index.tolist()
 
+# save this for later, could be cool for a chatbot
+def stream_text(text):
+    for word in text.split(" "):
+        yield word + " "
+        time.sleep(0.05)
+
 # === Application ===
 
 
-st.title("Hello, welcome to SpecScraper!")
+st.title("Hello, welcome to :blue[SpecScraper]! :wave:", anchor=None)
 
-st.write("Enter two GPU's to compare below..")
+st.write("Enter two GPUs to compare below..")
 
 
 
@@ -107,8 +114,9 @@ if gpu_1.strip() and gpu_2.strip():     #.strip() will ignore whitespace, this c
 
     # === Comparing dashboard happens here ===
 
-    # delta = percent difference between two specs
+    # delta = percent difference between two specs, calculated with max(left, right) / min(left, right)
 
+    st.write("Boost Clock Speed")
     left, right = st.columns(2) # must be reset for rendering purposes
 
     # boost clock frequency
@@ -116,14 +124,24 @@ if gpu_1.strip() and gpu_2.strip():     #.strip() will ignore whitespace, this c
     boost_1 = specs_1["boost_clock (ghz)"]
     boost_2 = specs_2["boost_clock (ghz)"]
 
-    delta = boost_1 - boost_2 
+    delta = ( ( max(boost_1, boost_2) / min(boost_1, boost_2) ) - 1 ) * 100.0
+    delta = round(delta, 2)
 
-    left.metric("Boost Clock Speed", str(boost_1) + " GHz", border=True)
-    right.metric("Boost Clock Speed", str(boost_2) + " GHz", border=True)
-
+    if boost_1 > boost_2:
+        left.metric(label="", label_visibility="collapsed", value=str(boost_1) + " GHz",  delta=str(delta) + "%")
+        right.metric(label="", label_visibility="collapsed", value=str(boost_2) + " GHz",  delta="")
+    elif boost_1 < boost_2:
+        left.metric(label="", label_visibility="collapsed", value=str(boost_1) + " GHz",  delta="")
+        right.metric(label="", label_visibility="collapsed", value=str(boost_2) + " GHz", delta=str(delta) + "%")
+    else:
+        left.metric(label="", label_visibility="collapsed", value=str(boost_1) + " GHz", )
+        right.metric(label="", label_visibility="collapsed", value=str(boost_2) + " GHz",)
 
 
     # cuda cores
+
+    st.write("Other Spec")
+    left, right = st.columns(2) # must be reset for rendering purposes
     
     left.metric("CUDA Cores", millify( specs_1["cuda_cores"] , precision=2), border=True)
     right.metric("CUDA Cores", millify( specs_2["cuda_cores"] , precision=2), border=True)
