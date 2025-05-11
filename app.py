@@ -75,6 +75,65 @@ def stream_text(text):
         yield word + " "
         time.sleep(0.05)
 
+# takes in a dict with each gpu's specs, and unit of measurement, spec name for writing
+def compare_spec(s1, s2, query_index, unit, spec_name, large_val=False):
+    st.write(spec_name)
+    left, right = st.columns(2)
+
+    # boost clock frequency
+
+    val_1 = s1[query_index] # ex. "cuda_cores" index of the dict
+    val_2 = s2[query_index]
+
+    # protection from divide by zero and other delta errors
+    if (val_1 == -1 or val_1 == 0) or (val_2 == -1 or val_2 == 0):
+
+
+        if val_1 == -1: 
+            left.metric("", label_visibility="collapsed", value="N/A")
+        else:
+            if large_val:
+                left.metric("", label_visibility="collapsed", value=str(millify(val_1, precision=2)) + " " + unit, )
+            else:
+                left.metric("", label_visibility="collapsed", value=str(val_1) + " " + unit, )
+
+        if val_2 == -1: 
+            right.metric("", label_visibility="collapsed", value="N/A")
+        else:
+            if large_val:
+                right.metric("", label_visibility="collapsed", value=str(millify(val_2, precision=2)) + " " + unit, )
+            else:
+                right.metric("", label_visibility="collapsed", value=str(val_2) + " " + unit, )
+
+        return
+    
+
+    # assuming two valid specs to compare
+
+    delta = ( ( max(val_1, val_2) / min(val_1, val_2) ) - 1 ) * 100.0
+    delta = round(delta, 2)
+
+    if large_val == True: #display numbers as 1.23k instead of 1,230
+        if val_1 > val_2:
+            left.metric("", label_visibility="collapsed", value=str( millify(val_1, precision=2) ) + " " + unit,  delta=str(delta) + "%")
+            right.metric("", label_visibility="collapsed", value=str( millify(val_2, precision=2) ) + " " + unit,  delta="")
+        elif val_1 < val_2:
+            left.metric("", label_visibility="collapsed", value=str(millify(val_1, precision=2)) + " " + unit,  delta="")
+            right.metric("", label_visibility="collapsed", value=str(millify(val_2, precision=2)) + " " + unit, delta=str(delta) + "%")
+        else:
+            left.metric("", label_visibility="collapsed", value=str(millify(val_1, precision=2)) + " " + unit, )
+            right.metric("", label_visibility="collapsed", value=str(millify(val_2, precision=2)) + " " + unit,)
+    else:
+        if val_1 > val_2:
+            left.metric("", label_visibility="collapsed", value=str(val_1) + " " + unit,  delta=str(delta) + "%")
+            right.metric("", label_visibility="collapsed", value=str(val_2) + " " + unit,  delta="")
+        elif val_1 < val_2:
+            left.metric("", label_visibility="collapsed", value=str(val_1) + " " + unit,  delta="")
+            right.metric("", label_visibility="collapsed", value=str(val_2) + " " + unit, delta=str(delta) + "%")
+        else:
+            left.metric("", label_visibility="collapsed", value=str(val_1) + " " + unit, )
+            right.metric("", label_visibility="collapsed", value=str(val_2) + " " + unit,)
+
 # === Application ===
 
 
@@ -109,41 +168,14 @@ if gpu_1.strip() and gpu_2.strip():     #.strip() will ignore whitespace, this c
     
     # st.write(f"Comparing {gpu_1} and {gpu_2}")
  
-    specs_1 = df.loc[gpu_1].to_dict() # convert each series to a python dict
-    specs_2 = df.loc[gpu_2].to_dict()
+    spec_1 = df.loc[gpu_1].to_dict() # convert each series to a python dict
+    spec_2 = df.loc[gpu_2].to_dict()
 
     # === Comparing dashboard happens here ===
 
-    # delta = percent difference between two specs, calculated with max(left, right) / min(left, right)
+    compare_spec(spec_1, spec_2, "boost_clock (ghz)", "GHz", "Boost Clock Frequency")
+    compare_spec(spec_1, spec_2, "cuda_cores", "", "CUDA Cores", large_val=True)
 
-    st.write("Boost Clock Speed")
-    left, right = st.columns(2) # must be reset for rendering purposes
-
-    # boost clock frequency
-
-    boost_1 = specs_1["boost_clock (ghz)"]
-    boost_2 = specs_2["boost_clock (ghz)"]
-
-    delta = ( ( max(boost_1, boost_2) / min(boost_1, boost_2) ) - 1 ) * 100.0
-    delta = round(delta, 2)
-
-    if boost_1 > boost_2:
-        left.metric(label="", label_visibility="collapsed", value=str(boost_1) + " GHz",  delta=str(delta) + "%")
-        right.metric(label="", label_visibility="collapsed", value=str(boost_2) + " GHz",  delta="")
-    elif boost_1 < boost_2:
-        left.metric(label="", label_visibility="collapsed", value=str(boost_1) + " GHz",  delta="")
-        right.metric(label="", label_visibility="collapsed", value=str(boost_2) + " GHz", delta=str(delta) + "%")
-    else:
-        left.metric(label="", label_visibility="collapsed", value=str(boost_1) + " GHz", )
-        right.metric(label="", label_visibility="collapsed", value=str(boost_2) + " GHz",)
-
-
-    # cuda cores
-
-    st.write("Other Spec")
-    left, right = st.columns(2) # must be reset for rendering purposes
     
-    left.metric("CUDA Cores", millify( specs_1["cuda_cores"] , precision=2), border=True)
-    right.metric("CUDA Cores", millify( specs_2["cuda_cores"] , precision=2), border=True)
 
     
