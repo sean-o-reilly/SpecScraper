@@ -2,9 +2,8 @@ import streamlit as st
 import pandas as pd
 from utils import process, millify, time, compare_all_specs
 
-df = pd.read_json("data/gpu_specs.json").set_index("name")
+df = pd.read_csv("data/gpu_specs.csv").set_index("name")
 
-df["boost_clock_ghz"] = df["boost_clock_ghz"].round(2) # fix floating point errors
 names = df.index.tolist()
 
 # save this for later, could be cool for a chatbot

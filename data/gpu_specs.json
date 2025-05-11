@@ -1,14 +1,5 @@
 [
   {
-    "name": "NVIDIA Geforce RTX 5070",
-    "boost_clock_ghz": 2.51,
-    "base_clock_ghz": 2.33,
-    "vram_gb": 12,
-    "cuda_cores": 6144,
-    "power_watts": 650,
-    "msrp_usd": 550
-  },
-  {
     "name": "NVIDIA Geforce RTX 5070 Ti",
     "boost_clock_ghz": 2.45,
     "base_clock_ghz": 2.3,
@@ -16,6 +7,15 @@
     "cuda_cores": 8960,
     "power_watts": 750,
     "msrp_usd": 750
+  },
+  {
+    "name": "NVIDIA Geforce RTX 5070",
+    "boost_clock_ghz": 2.51,
+    "base_clock_ghz": 2.33,
+    "vram_gb": 12,
+    "cuda_cores": 6144,
+    "power_watts": 650,
+    "msrp_usd": 550
   },
   {
     "name": "NVIDIA GeForce RTX 1060",
