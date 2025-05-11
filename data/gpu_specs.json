@@ -2,7 +2,7 @@
   {
     "name": "NVIDIA Geforce RTX 5070",
     "boost_clock_ghz": 2.51,
-    "base_clock": 2.33,
+    "base_clock_ghz": 2.33,
     "vram_gb": 12,
     "cuda_cores": 6144,
     "power_watts": 650,
@@ -11,7 +11,7 @@
   {
     "name": "NVIDIA Geforce RTX 5070 Ti",
     "boost_clock_ghz": 2.45,
-    "base_clock": 2.3,
+    "base_clock_ghz": 2.3,
     "vram_gb": 16,
     "cuda_cores": 8960,
     "power_watts": 750,
@@ -20,7 +20,7 @@
   {
     "name": "NVIDIA GeForce RTX 1060",
     "boost_clock_ghz": 1.7,
-    "base_clock": 1.5,
+    "base_clock_ghz": 1.5,
     "vram_gb": 6,
     "cuda_cores": -1,
     "power_watts": 300,
@@ -29,7 +29,7 @@
   {
     "name": "AMD Radeon RX 9070 XT",
     "boost_clock_ghz": 2.97,
-    "base_clock": 2.4,
+    "base_clock_ghz": 2.4,
     "vram_gb": 16,
     "cuda_cores": -1,
     "power_watts": 750,

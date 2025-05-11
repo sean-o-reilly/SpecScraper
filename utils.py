@@ -3,15 +3,25 @@ from rapidfuzz import process # for querying df
 from millify import millify # pretty number formatting
 import time # sleeping
 
-def compare_spec(s1, s2, query_index, unit, spec_name, large_val=False, small_val=False, flip_weights=False, delta_color="normal", prefix=""):
+
+
+"""
+compare_spec API to draw a comparison between two specs of a GPU
+
+val_1 : corresponding value from gpu 1
+val_2 : corresponding value from gpu 2
+spec_name : index of spec to compare. "cuda_cores", "base_clock_ghz", etc.
+unit : "GHz", "GB", "Watts", etc.
+large_val : will use millify to round numbers. ex. 1,230 -> "1.23k"
+small_val : will format small values like VRAM accordingly
+delta_color : set to inverse when flipping weights^
+prefix : string to add on, "$" for money, maybe curly "=" or "approx."
+
+"""
+
+def compare_spec(val_1, val_2, spec_name, unit, large_val=False, small_val=False, delta_color="normal", prefix=""):
     st.badge(spec_name)
     left, right = st.columns(2)
-
-    # boost clock frequency
-
-    val_1 = s1[query_index] # ex. "cuda_cores" index of the dict
-    val_2 = s2[query_index]
-
 
     # protection from divide by zero and other delta errors
     if (val_1 == -1 or val_1 == 0) or (val_2 == -1 or val_2 == 0):
@@ -83,3 +93,16 @@ def compare_spec(s1, s2, query_index, unit, spec_name, large_val=False, small_va
         else:
             left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit)
             right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
+
+
+def compare_all_specs(s1, s2):
+
+
+    with st.container(height=700):
+        with st.spinner(): # adds spinning loading screen
+            compare_spec(val_1=s1["boost_clock_ghz"], val_2=s2["boost_clock_ghz"], spec_name="Boost Clock Frequency", unit="GHz")
+            compare_spec(val_1=s1["base_clock_ghz"], val_2=s2["base_clock_ghz"], spec_name="Base Clock Frequency", unit="GHz")
+            compare_spec(val_1=s1["vram_gb"], val_2=s2["vram_gb"], spec_name="VRAM", unit="GB", small_val=True)
+            compare_spec(val_1=s1["power_watts"], val_2=s2["power_watts"], spec_name="Power Usage", unit="Watts", small_val=True, delta_color="inverse")
+            compare_spec(val_1=s1["msrp_usd"], val_2=s2["msrp_usd"], spec_name="MSRP Price", unit="USD", small_val=True, delta_color="inverse", prefix="$")
+            compare_spec(val_1=s1["cuda_cores"], val_2=s2["cuda_cores"], spec_name="CUDA Cores", unit="", large_val=True)
