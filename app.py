@@ -18,59 +18,18 @@ from millify import millify
 
     # {
     #     "name": "",
-    #     "boost_clock (ghz)": ,
+    #     "boost_clock_ghz": ,
     #     "base_clock": , 
-    #     "vram (gb)": ,
+    #     "vram_gb": ,
     #     "cuda_cores": ,
-    #     "power (watts)": 
+    #     "power_watts": 
     # },
 
 
 # i want to add a picutre too^^^ AND MSRP
 # average fps across games
 
-gpu_specs = [
-
-    {
-        "name": "NVIDIA Geforce RTX 5070",
-        "boost_clock (ghz)": 2.51,
-        "base_clock": 2.33, 
-        "vram (gb)": 12,
-        "cuda_cores": 6144,
-        "power (watts)": 650,
-        "msrp_usd": 550
-    },
-    {
-        "name": "NVIDIA Geforce RTX 5070 Ti",
-        "boost_clock (ghz)": 2.45,
-        "base_clock": 2.3, 
-        "vram (gb)": 16,
-        "cuda_cores": 8960,
-        "power (watts)": 750,
-        "msrp_usd": 750
-    },
-    {
-        "name": "NVIDIA GeForce RTX 1060",
-        "boost_clock (ghz)": 1.70,
-        "base_clock": 1.50, 
-        "vram (gb)": 6,
-        "cuda_cores": -1,
-        "power (watts)": 300,
-        "msrp_usd": 250
-    },
-    {
-        "name": "AMD Radeon RX 9070 XT",
-        "boost_clock (ghz)": 2.97,
-        "base_clock": 2.40, 
-        "vram (gb)": 16,
-        "cuda_cores": -1,
-        "power (watts)": 750,
-        "msrp_usd": 600
-    }
-]
-
-# will change this a json import later
-df = pd.DataFrame(data=gpu_specs).set_index("name")
+df = pd.read_json("data/gpu_specs.json").set_index("name")
 names = df.index.tolist()
 
 # save this for later, could be cool for a chatbot
@@ -126,21 +85,34 @@ def compare_spec(s1, s2, query_index, unit, spec_name, large_val=False, small_va
         delta = round(delta, 2)
         delta = prefix + str(delta) + "%"
 
+
+
+    delta_pos = 0 # middle
+    if val_1 > val_2: delta_pos = -1 # left
+    if val_2 > val_1: delta_pos = 1 # right
+
+    if delta_color == "inverse": 
+        delta_pos *= -1 # flip direction
+        delta = "-" + delta # flip arrow
+    else:
+        delta = "+" + delta
+
+
     if large_val == True: #display numbers as 1.23k instead of 1,230
-        if val_1 > val_2:
+        if delta_pos == -1:
             left.metric("", label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " " + unit,  delta=delta, delta_color=delta_color)
             right.metric("", label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " " + unit)
-        elif val_1 < val_2:
+        elif delta_pos == 1:
             left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit)
             right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit, delta=delta, delta_color=delta_color)
         else:
             left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit, )
             right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit,)
     else:
-        if val_1 > val_2:
+        if delta_pos == -1:
             left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit,  delta=delta, delta_color=delta_color)
             right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
-        elif val_1 < val_2:
+        elif delta_pos == 1:
             left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit)
             right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit, delta=delta, delta_color=delta_color)
         else:
@@ -193,10 +165,10 @@ if gpu_1.strip() and gpu_2.strip():     #.strip() will ignore whitespace, this c
 
     with st.container(height=700):
         with st.spinner(): # adds spinning loading screen
-            compare_spec(spec_1, spec_2, "boost_clock (ghz)", "GHz", "Boost Clock Frequency")
+            compare_spec(spec_1, spec_2, "boost_clock_ghz", "GHz", "Boost Clock Frequency")
             compare_spec(spec_1, spec_2, "base_clock", "GHz", "Base Clock Frequency")
-            compare_spec(spec_1, spec_2, "vram (gb)", "GB", "VRAM",small_val=True)
-            compare_spec(spec_1, spec_2, "power (watts)", "Watts", "Power Usage", small_val=True, delta_color="inverse")
+            compare_spec(spec_1, spec_2, "vram_gb", "GB", "VRAM",small_val=True)
+            compare_spec(spec_1, spec_2, "power_watts", "Watts", "Power Usage", small_val=True, delta_color="inverse")
             compare_spec(spec_1, spec_2, "msrp_usd", "USD", "MSRP Price", small_val=True, delta_color="inverse", prefix="$")
             compare_spec(spec_1, spec_2, "cuda_cores", "", "CUDA Cores", large_val=True)
             
