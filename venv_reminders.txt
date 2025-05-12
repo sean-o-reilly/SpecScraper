@@ -11,4 +11,4 @@ CTRL+C              # stop the streamlit server from running on the port
 
 
 
-df      # will automatically print out a whole pandas dataframe
+df      # will automatically print out a whole pandas dataframe with st magic

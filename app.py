@@ -1,10 +1,23 @@
 import streamlit as st
 import pandas as pd
 from utils import process, millify, time, compare_all_specs
+import plotly.express as px
 
-df = pd.read_csv("data/gpu_specs.csv").set_index("name")
+specs = pd.read_csv("data/gpu_specs.csv").set_index("name") # specs is a pandas dataframe
 
-names = df.index.tolist()
+benchmarks = pd.read_csv("data/gpu_fps.csv")
+games = pd.read_csv("data/games.csv")
+
+# adding a relevance score to games df, weighted by how new the game is, and how popular it is
+
+games['relevance_score'] = (
+    (0.4 * games['popularity_score']) + 0.6 * (games['release_year'] - games['release_year'].min())
+)
+
+fps_df = pd.merge(benchmarks, games, on="game")
+fps_df = fps_df.sort_values(by=['relevance_score'], ascending=[False])
+
+names = specs.index.tolist()
 
 # save this for later, could be cool for a chatbot
 def stream_text(text):
@@ -25,7 +38,6 @@ def stream_text(text):
 st.title("Hello, welcome to :blue[SpecScraper]! :wave:", anchor=None)
 
 st.write("Enter two GPUs to compare below..")
-
 
 left, right = st.columns(2)
 
@@ -51,8 +63,48 @@ if gpu_1 is not None and gpu_2 is not None:  # only trigger once both parameters
     
     # === Comparing dashboard happens here ===
 
-    spec_1 = df.loc[gpu_1].to_dict() # convert each series to a python dict
-    spec_2 = df.loc[gpu_2].to_dict()
-    compare_all_specs(spec_1, spec_2)  
+    specs_tab, fps_tab = st.tabs(["Specs", "FPS"])
 
-    # TODO: some sort of compare_fps function here
+    with specs_tab:
+        spec_1 = specs.loc[gpu_1]
+        spec_2 = specs.loc[gpu_2]
+
+
+        compare_all_specs(spec_1, spec_2)  
+    with fps_tab:
+
+        left, middle, right = st.columns(3)
+
+        resolution = "1440p" # default for comparison
+
+        if left.button("1080p", use_container_width=True):
+            resolution = "1080p"
+        if middle.button("1440p", use_container_width=True):
+            resolution = "1440p"
+        if right.button("4k", use_container_width=True):
+            resolution = "4k"
+
+        compare_fps_df = fps_df[
+            ((fps_df['gpu_name'] == gpu_1) | (fps_df['gpu_name'] == gpu_2)) &
+            (fps_df['resolution'] == resolution)
+        ]
+
+        # compare_fps_df
+
+        fps_bar = px.bar(compare_fps_df, 
+                    x='game', 
+                    y='fps_avg', 
+                    color='gpu_name', 
+                    barmode='group', 
+                    text='fps_avg',
+                    width=10,
+                    title=None)
+        fps_bar.update_traces(textposition='outside')
+        fps_bar.update_layout(yaxis_title='Average FPS', xaxis_title='', legend_title=None)
+
+
+        st.plotly_chart(fps_bar, use_container_width=True, on_select="rerun")
+
+    
+        st.caption("Benchmarked on max settings")
+

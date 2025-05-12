@@ -1,4 +1,4 @@
-name,base_clock_ghz,boost_clock_ghz,vram_gb,cuda_cores,power_watts,msrp_usd
+name,base_clock_ghz,boost_clock_ghz,vram_gb,processors,power_watts,msrp_usd
 NVIDIA RTX 5090,2.35,2.9,24,18432,600,1800
 NVIDIA RTX 5080 Ti,2.3,2.8,20,16384,500,1300
 NVIDIA RTX 5080,2.25,2.75,16,14080,450,1000

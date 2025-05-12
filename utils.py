@@ -10,47 +10,54 @@ compare_spec API to draw a comparison between two specs of a GPU
 
 val_1 : corresponding value from gpu 1
 val_2 : corresponding value from gpu 2
-spec_name : index of spec to compare. "cuda_cores", "base_clock_ghz", etc.
+spec_name : name of spec to compare. "processors", "base_clock_ghz", etc.
 unit : "GHz", "GB", "Watts", etc.
 large_val : will use millify to round numbers. ex. 1,230 -> "1.23k"
 small_val : will format small values like VRAM accordingly
 delta_color : set to inverse when flipping weights^
 prefix : string to add on, "$" for money, maybe curly "=" or "approx."
+compare_processors : 0 for standard comparison, -1 for CUDA Cores on the left, 1 for CUDA Cores on the right
 
 """
 
-def compare_spec(val_1, val_2, spec_name, unit, large_val=False, small_val=False, delta_color="normal", prefix=""):
+def compare_spec(val_1, val_2, 
+                 spec_name, unit, 
+                 large_val=False, 
+                 small_val=False, 
+                 delta_color="normal", 
+                 prefix="", 
+                 compare_processors=0):
+
 
     with st.container(height=150):
         st.badge(spec_name)
         left, right = st.columns(2)
 
         # protection from divide by zero and other delta errors
-        if (val_1 == -1 or val_1 == 0) or (val_2 == -1 or val_2 == 0):
+        # if (val_1 == -1 or val_1 == 0) or (val_2 == -1 or val_2 == 0):
 
+        #     if val_1 == -1: 
+        #         left.metric("", label_visibility="collapsed", value="N/A")
+        #     else:
+        #         if large_val:
+        #             left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit, )
+        #         else:
+        #             left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit, )
 
-            if val_1 == -1: 
-                left.metric("", label_visibility="collapsed", value="N/A")
-            else:
-                if large_val:
-                    left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit, )
-                else:
-                    left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit, )
-
-            if val_2 == -1: 
-                right.metric("", label_visibility="collapsed", value="N/A")
-            else:
-                if large_val:
-                    right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit, )
-                else:
-                    right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit, )
+        #     if val_2 == -1: 
+        #         right.metric("", label_visibility="collapsed", value="N/A")
+        #     else:
+        #         if large_val:
+        #             right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit, )
+        #         else:
+        #             right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit, )
             
-            return
+        #     return
         
 
         # assuming two valid specs to compare
 
-        # wouldn't make sense to say 12GB of RAM is "50%" more ram.. but maybe i should revert this later
+        # "+4 Gb" instead of "50% more GB"
         if small_val == True:
             delta = (abs(val_1 - val_2))
             delta = prefix + str(int(delta)) + " " + unit
@@ -76,7 +83,14 @@ def compare_spec(val_1, val_2, spec_name, unit, large_val=False, small_val=False
 
 
         if large_val == True: #display numbers as 1.23k instead of 1,230
-            if delta_pos == -1:
+
+            if compare_processors == -1: #Cuda cores left, stream processors right
+                left.metric("", label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " CUDA Cores")
+                right.metric("", label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " SPs")
+            elif compare_processors == 1: #Cuda cores right, stream processors left
+                left.metric("", label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " SPs")
+                right.metric("", label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " CUDA Cores")
+            elif delta_pos == -1:
                 left.metric("", label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " " + unit,  delta=delta, delta_color=delta_color)
                 right.metric("", label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " " + unit)
             elif delta_pos == 1:
@@ -97,6 +111,8 @@ def compare_spec(val_1, val_2, spec_name, unit, large_val=False, small_val=False
                 right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
 
 
+# s1 and s2 are pandas series of gpu specs
+
 def compare_all_specs(s1, s2):
 
     with st.spinner(): # adds spinning loading screen
@@ -105,4 +121,14 @@ def compare_all_specs(s1, s2):
         compare_spec(val_1=s1["vram_gb"], val_2=s2["vram_gb"], spec_name="VRAM", unit="GB", small_val=True)
         compare_spec(val_1=s1["power_watts"], val_2=s2["power_watts"], spec_name="Power Usage", unit="Watts", small_val=True, delta_color="inverse")
         compare_spec(val_1=s1["msrp_usd"], val_2=s2["msrp_usd"], spec_name="MSRP Price", unit="USD", small_val=True, delta_color="inverse", prefix="$")
-        compare_spec(val_1=s1["cuda_cores"], val_2=s2["cuda_cores"], spec_name="CUDA Cores", unit="", large_val=True)
+        
+
+        # potentially a better way to compare processors, or simply dont compare cuda cores/stream processors at all
+        if s1.name[0] == 'N' and s2.name[0] == 'N':
+            compare_spec(val_1=s1["processors"], val_2=s2["processors"], spec_name="Processors", unit="CUDA Cores", large_val=True)
+        elif "AMD" in s1.name  and "AMD" in s2.name:
+            compare_spec(val_1=s1["processors"], val_2=s2["processors"], spec_name="Processors", unit="SPs", large_val=True)
+        elif "NVIDIA" in s1.name  and "AMD" in s2.name: 
+            compare_spec(val_1=s1["processors"], val_2=s2["processors"], spec_name="Processors", unit="", large_val=True, compare_processors=-1)
+        elif "AMD" in s1.name  and "NVIDIA" in s2.name:
+            compare_spec(val_1=s1["processors"], val_2=s2["processors"], spec_name="Processors", unit="", large_val=True, compare_processors=1)
