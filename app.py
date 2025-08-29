@@ -4,12 +4,10 @@ from utils import process, millify, time, compare_all_specs
 import plotly.express as px
 
 specs = pd.read_csv("data/gpu_specs.csv").set_index("name") # specs is a pandas dataframe
-
 benchmarks = pd.read_csv("data/gpu_fps.csv")
 games = pd.read_csv("data/games.csv")
 
 # adding a relevance score to games df, weighted by how new the game is, and how popular it is
-
 games['relevance_score'] = (
     (0.4 * games['popularity_score']) + 0.6 * (games['release_year'] - games['release_year'].min())
 )
@@ -19,29 +17,13 @@ fps_df = fps_df.sort_values(by=['relevance_score'], ascending=[False])
 
 names = specs.index.tolist()
 
-# save this for later, could be cool for a chatbot
-def stream_text(text):
-    for word in text.split(" "):
-        yield word + " "
-        time.sleep(0.05)
-
-# === Application ===
-
-# my_bar = st.progress(0)
-# for percent_complete in range(100):
-#     time.sleep(0.005)
-#     my_bar.progress(percent_complete + 1)
-# time.sleep(0.5)
-# my_bar.empty()
-
+# === Begin st UI === 
 
 st.title("Hello, welcome to :blue[SpecScraper]! :wave:", anchor=None)
 
 st.write("Enter two GPUs to compare below..")
 
 left, right = st.columns(2)
-
-# using st's selectbox query, finds strings of each gpu with a dropdown menu and search
 
 gpu_1 = left.selectbox(
             "empty1",
@@ -61,14 +43,13 @@ gpu_2 = right.selectbox(
 
 if gpu_1 is not None and gpu_2 is not None:  # only trigger once both parameters are entered
     
-    # === Comparing dashboard happens here ===
+    # === Comparing dashboard ===
 
     specs_tab, fps_tab = st.tabs(["Specs", "FPS"])
 
     with specs_tab:
         spec_1 = specs.loc[gpu_1]
         spec_2 = specs.loc[gpu_2]
-
 
         compare_all_specs(spec_1, spec_2)  
     with fps_tab:
@@ -90,7 +71,6 @@ if gpu_1 is not None and gpu_2 is not None:  # only trigger once both parameters
         ]
 
         # compare_fps_df
-
         fps_bar = px.bar(compare_fps_df, 
                     x='game', 
                     y='fps_avg', 
@@ -102,9 +82,6 @@ if gpu_1 is not None and gpu_2 is not None:  # only trigger once both parameters
         fps_bar.update_traces(textposition='outside')
         fps_bar.update_layout(yaxis_title='Average FPS', xaxis_title='', legend_title=None)
 
-
         st.plotly_chart(fps_bar, use_container_width=True, on_select="rerun")
-
     
         st.caption("Benchmarked on max settings")
-
