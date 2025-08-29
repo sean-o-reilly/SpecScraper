@@ -42,30 +42,30 @@ def compare_spec(val_1, val_2,
         if large_val == True: #display numbers as 1.23k instead of 1,230
 
             if compare_processors == -1: #Cuda cores left, stream processors right
-                left.metric("", label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " CUDA Cores")
-                right.metric("", label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " SPs")
+                left.metric(spec_name, label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " CUDA Cores")
+                right.metric(spec_name, label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " SPs")
             elif compare_processors == 1: #Cuda cores right, stream processors left
-                left.metric("", label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " SPs")
-                right.metric("", label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " CUDA Cores")
+                left.metric(spec_name, label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " SPs")
+                right.metric(spec_name, label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " CUDA Cores")
             elif delta_pos == -1:
-                left.metric("", label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " " + unit,  delta=delta, delta_color=delta_color)
-                right.metric("", label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " " + unit)
+                left.metric(spec_name, label_visibility="collapsed", value=prefix + str( millify(val_1, precision=2) ) + " " + unit,  delta=delta, delta_color=delta_color)
+                right.metric(spec_name, label_visibility="collapsed", value=prefix + str( millify(val_2, precision=2) ) + " " + unit)
             elif delta_pos == 1:
-                left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit)
-                right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit, delta=delta, delta_color=delta_color)
+                left.metric(spec_name, label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit)
+                right.metric(spec_name, label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit, delta=delta, delta_color=delta_color)
             else:
-                left.metric("", label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit, )
-                right.metric("", label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit,)
+                left.metric(spec_name, label_visibility="collapsed", value=prefix + str(millify(val_1, precision=2)) + " " + unit, )
+                right.metric(spec_name, label_visibility="collapsed", value=prefix + str(millify(val_2, precision=2)) + " " + unit,)
         else:
             if delta_pos == -1:
-                left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit,  delta=delta, delta_color=delta_color)
-                right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
+                left.metric(spec_name, label_visibility="collapsed", value=prefix + str(val_1) + " " + unit,  delta=delta, delta_color=delta_color)
+                right.metric(spec_name, label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
             elif delta_pos == 1:
-                left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit)
-                right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit, delta=delta, delta_color=delta_color)
+                left.metric(spec_name, label_visibility="collapsed", value=prefix + str(val_1) + " " + unit)
+                right.metric(spec_name, label_visibility="collapsed", value=prefix + str(val_2) + " " + unit, delta=delta, delta_color=delta_color)
             else:
-                left.metric("", label_visibility="collapsed", value=prefix + str(val_1) + " " + unit)
-                right.metric("", label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
+                left.metric(spec_name, label_visibility="collapsed", value=prefix + str(val_1) + " " + unit)
+                right.metric(spec_name, label_visibility="collapsed", value=prefix + str(val_2) + " " + unit)
 
 # s1 and s2 are pandas series of gpu specs
 def compare_all_specs(s1, s2):

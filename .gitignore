@@ -3,5 +3,5 @@ venv/
 .streamlit/
 __pycache__/
 *.pyc
-data/
+data/local/
 scraping/.env
