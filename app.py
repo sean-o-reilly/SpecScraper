@@ -3,9 +3,9 @@ import pandas as pd
 from utils import process, millify, time, compare_all_specs
 import plotly.express as px
 
-specs = pd.read_csv("data/gpu_specs.csv").set_index("name") # specs is a pandas dataframe
-benchmarks = pd.read_csv("data/gpu_fps.csv")
-games = pd.read_csv("data/games.csv")
+specs = pd.read_csv("data/local/gpu_specs.csv").set_index("name") # specs is a pandas dataframe
+benchmarks = pd.read_csv("data/localgpu_fps.csv")
+games = pd.read_csv("data/local/games.csv")
 
 # adding a relevance score to games df, weighted by how new the game is, and how popular it is
 games['relevance_score'] = (
