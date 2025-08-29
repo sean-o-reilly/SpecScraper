@@ -3,9 +3,20 @@ import pandas as pd
 from utils import process, millify, time, compare_all_specs
 import plotly.express as px
 
-specs = pd.read_csv("data/local/gpu_specs.csv").set_index("name") # specs is a pandas dataframe
-benchmarks = pd.read_csv("data/localgpu_fps.csv")
-games = pd.read_csv("data/local/games.csv")
+def load_csv_with_error(path, **kwargs):
+    try:
+        return pd.read_csv(path, **kwargs)
+    except Exception as e:
+        st.error(f"Failed to load {path}: {e}")
+        st.stop()
+
+try:
+    specs = load_csv_with_error("data/local/gpu_specs.csv").set_index("name")
+    benchmarks = load_csv_with_error("data/local/gpu_fps.csv")
+    games = load_csv_with_error("data/local/games.csv")
+except Exception as e:
+    st.error(f"Critical error loading data: {e}")
+    st.stop()
 
 # adding a relevance score to games df, weighted by how new the game is, and how popular it is
 games['relevance_score'] = (
@@ -72,15 +83,15 @@ if gpu_1 is not None and gpu_2 is not None:  # only trigger once both parameters
 
         # compare_fps_df
         fps_bar = px.bar(compare_fps_df, 
-                    x='game', 
-                    y='fps_avg', 
-                    color='gpu_name', 
-                    barmode='group', 
-                    text='fps_avg',
-                    width=10,
-                    title=None)
+                x='game', 
+                y='fps_avg', 
+                color='gpu_name', 
+                barmode='group', 
+                text='fps_avg',
+                width=10,
+                title=f"{resolution}")
         fps_bar.update_traces(textposition='outside')
-        fps_bar.update_layout(yaxis_title='Average FPS', xaxis_title='', legend_title=None)
+        fps_bar.update_layout(yaxis_title='Average FPS', xaxis_title='', legend_title=None, title_x=0.5)
 
         st.plotly_chart(fps_bar, use_container_width=True, on_select="rerun")
     
